@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT Modern IBD 2</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --bg: #f4f7f6;
+        }
+        body { font-family: sans-serif; background-color: var(--bg); margin: 0; padding-bottom: 50px; }
+        header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; border-bottom: 2px solid #ddd; position: sticky; top: 0; z-index: 100; }
+        .container { display: flex; flex-direction: row; gap: 20px; padding: 15px; max-width: 1100px; margin: 0 auto; }
+        
+        /* Area Soal */
+        .question-card { flex: 2; background: white; border-radius: 10px; border: 1px solid #ddd; overflow: hidden; display: flex; flex-direction: column; }
+        .q-header { padding: 15px; background: #fcfcfc; border-bottom: 1px solid #eee; font-weight: bold; color: var(--primary); }
+        .q-body { padding: 25px; min-height: 300px; }
+        .q-text { font-size: 1.1rem; margin-bottom: 20px; font-weight: 600; line-height: 1.5; }
+        
+        .opt { display: block; width: 100%; padding: 14px; margin-bottom: 10px; border: 1px solid #eee; border-radius: 8px; text-align: left; background: white; cursor: pointer; font-size: 1rem; }
+        .correct { background: #d4edda !important; border-color: var(--success) !important; color: #155724; font-weight: bold; }
+        .wrong { background: #f8d7da !important; border-color: var(--danger) !important; color: #721c24; }
+        
+        .q-footer { padding: 15px; background: #fcfcfc; border-top: 1px solid #eee; display: flex; justify-content: space-between; }
+        
+        /* Sidebar */
+        .sidebar { flex: 0.8; background: white; border-radius: 10px; border: 1px solid #ddd; padding: 15px; height: fit-content; }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
+        .nav-item { height: 35px; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .n-active { border: 2px solid var(--accent); background: #ebf5fb; }
+        .n-correct { background: var(--success); color: white; border: none; }
+        .n-wrong { background: var(--danger); color: white; border: none; }
+
+        .note-box { margin-top: 15px; padding: 12px; background: #fff9c4; border-radius: 6px; font-size: 0.85rem; display: none; border-left: 4px solid #fbc02d; }
+        .btn { padding: 10px 18px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; }
+        .btn-blue { background: var(--accent); }
+        .btn-gray { background: #95a5a6; }
+
+        @media (max-width: 768px) { .container { flex-direction: column; } }
+        #review-page { display: none; padding: 20px; max-width: 800px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="font-weight: bold; color: var(--primary);">IBD 2 - MARVELL COMPILER</div>
+    <div style="font-weight: bold; color: var(--danger);">SKOR: <span id="skor-val">0</span></div>
+</header>
+
+<div class="container" id="quiz-page">
+    <div class="question-card">
+        <div class="q-header" id="q-title">Memuat...</div>
+        <div class="q-body">
+            <div class="q-text" id="q-text">Sabar ya, lagi nyiapin soalnya...</div>
+            <div id="opts-box"></div>
+            <div class="note-box" id="note-box"></div>
+        </div>
+        <div class="q-footer">
+            <button class="btn btn-gray" onclick="nav(-1)">KEMBALI</button>
+            <button class="btn btn-blue" onclick="nav(1)">LANJUT</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div style="font-weight: bold; font-size: 0.8rem; border-bottom: 1px solid #eee; padding-bottom: 5px;">NAVIGASI SOAL</div>
+        <div class="nav-grid" id="nav-grid"></div>
+        <button class="btn" style="background: var(--danger); width: 100%; margin-top: 15px;" onclick="selesai()">SELESAI</button>
+    </div>
+</div>
+
+<div id="review-page">
+    <div class="question-card" style="text-align: center; padding: 30px; margin-bottom: 20px;">
+        <h2>HASIL BELAJAR</h2>
+        <h1 style="font-size: 4rem; color: var(--accent);" id="final-skor">0</h1>
+        <p id="final-pesan"></p>
+        <button class="btn btn-blue" onclick="location.reload()">COBA LAGI</button>
+    </div>
+    <div id="review-list"></div>
+</div>
+
+<script>
+    const daftarSoal = [
+        { q: "Kurva disosiasi Hb-02 menggambarkan hubungan antara % saturasi Hb-02 dengan apa?", a: 2, opts: ["pH", "Suhu", "PO2 Gaya Pendorong", "PCO2", "2,3 difosfogliserat"], n: "Oksigen bisa nempel ke Hemoglobin karena didorong sama tekanan Oksigen (PO2) itu sendiri." },
+        { q: "Struktur berikut yang homolog dengan labia mayora adalah", a: 2, opts: ["Penis klitoris", "Penis glans", "Skrotum", "Prostat", "Testis"], n: "Asal-usulnya labia mayora itu mirip sama skrotum pada pria." },
+        { q: "Apa contoh dari organ retroperitoneal?", a: 0, opts: ["Ren", "fleum", "Yeyunum", "Lien", "Gaster"], n: "Gunakan trik SADPUCKER. R itu Ren (Ginjal), dia letaknya di belakang perut." },
+        { q: "Apa peran organ hati atau hepar dalam pencernaan?", a: 4, opts: ["Menghasilkan kolesterol", "Sintesis protein plasma", "Menghasilkan bilirubin", "Menghasilkan enzim lipase", "Menghasilkan empedu"], n: "Hati tugasnya produksi empedu buat bantu hancurin lemak." },
+        { q: "RNOS manakah yang pada konsentrasi rendah berperan sebagai vasodilator?", a: 0, opts: ["Nitric oxide", "Nitrite", "Peroxynitrite", "Nitrogen dioxide", "Nitrogen trioxide"], n: "Nitric Oxide (NO) itu gas yang bikin pembuluh darah melebar." },
+        { q: "Manakah hormon yang bersifat lipofilik?", a: 0, opts: ["Tiroksin", "Vasopressin", "Dopamin", "Epinefrin", "Melatonin"], n: "Tiroksin itu hormon yang suka atau larut dalam lemak." },
+        { q: "Struktur apakah yang merupakan batas saluran nafas atas?", a: 3, opts: ["Cavum Nasi", "Nasopharynx", "Laryngopharynx", "Larynx", "Trachea"], n: "Laring itu batas akhir napas atas. Kalau sudah masuk trakea, itu sudah napas bawah." },
+        { q: "Pembuluh darah manakah yang umum digunakan untuk memasukkan cairan infus?", a: 0, opts: ["Vena mediana cubiti", "Vena saphena parva", "Vena basilica", "Vena saphena magna", "Vena cephalica"], n: "Biasanya pakai Vena Mediana Cubiti yang ada di lipatan siku." },
+        { q: "Arteri cerebri anterior mendarahi bagian manakah dari cerebrum?", a: 4, opts: ["Posterior", "Lateral", "Anterior", "Anterior-Lateral", "Medial"], n: "Dia ngasih aliran darah ke otak bagian tengah (medial)." },
+        { q: "Katup yang mencegah aliran balik dari aorta ke ventrikel kiri?", a: 1, opts: ["Valva trikuspidalis", "Valva semilunaris aorta", "Valva vena cava", "Valva pulmonalis", "Valva mitralis"], n: "Biar darah nggak balik ke bilik kiri, dijaga sama katup aorta." },
+        { q: "Lokasi palpasi arteri brachialis?", a: 3, opts: ["Tangan", "Mandibula", "Punggung kaki", "Fossa cubiti (Lipat siku)", "Axilla"], n: "Cek nadinya di lipatan siku." },
+        { q: "Kulit penis yang dibuang saat sunat?", a: 1, opts: ["Frenulum", "Preputium", "Scrotum", "Glans penis", "Corpus"], n: "Preputium itu kulit yang dibuang pas sirkumsisi." },
+        { q: "Bagian tengah medulla spinalis isinya apa?", a: 0, opts: ["Canalis centralis", "Plexus choroideus", "Aqueduct", "Foramen", "Ventricle"], n: "Namanya Canalis Centralis, isinya cairan otak." },
+        { q: "Volume udara sisa setelah buang napas normal?", a: 2, opts: ["Tidal", "Residu", "Volume cadangan ekspirasi", "Cadangan inspirasi", "Total"], n: "Masih ada udara sisa yang bisa dibuang paksa." },
+        { q: "Pernyataan BENAR sirkulasi pulmonalis?", a: 2, opts: ["Oksigen ke paru", "Deoksigenasi ke atrium", "Dari ventrikel kanan", "Darah kotor ke tubuh", "Darah bersih ke atrium"], n: "Sirkulasi paru mulai dari bilik (ventrikel) kanan." },
+        { q: "Faktor tekanan sistolik?", a: 4, opts: ["Arteriol", "Vena", "Kontraksi", "Viskositas", "Curah jantung"], n: "Seberapa banyak darah dipompa jantung menentukan sistol." },
+        { q: "Listrik ventrikel di EKG?", a: 1, opts: ["P-R", "Kompleks QRS", "U", "T", "P"], n: "QRS itu tanda ventrikel lagi kerja." },
+        { q: "Oksigen terima 2 elektron jadi apa?", a: 0, opts: ["H2O2", "Hidroksil", "Singlet", "Peroxyl", "Superoksida"], n: "Oksigen + 2 elektron = Hidrogen Peroksida." },
+        { q: "Penentu tekanan diastolik?", a: 0, opts: ["Diameter arteriol", "Vena", "Kontraksi", "Viskositas", "Curah jantung"], n: "Ditentukan sama sempitnya pembuluh darah kecil." },
+        { q: "Segmen P-R di EKG?", a: 4, opts: ["Kontraksi atrium", "Perlambatan", "Depolarisasi", "Ventrikel", "Listrik atrium + AV node"], n: "Waktu listrik lewat atrium sampai antre di pintu AV Node." },
+        { q: "Komunikasi parakrin?", a: 4, opts: ["Tiroksin", "Estrogen", "Insulin", "Adrenalin", "Interleukin"], n: "Interleukin cuma ngobrol sama sel tetangga." },
+        { q: "Pengatur lengkung refleks?", a: 2, opts: ["Aferen", "Pusat", "Pusat integral (SSP)", "Efektor", "Sensor"], n: "Pusat integral di sistem saraf pusat pengaturnya." },
+        { q: "Komunikasi antar neuron saraf?", a: 2, opts: ["Akson", "Dendrit", "Sinaps", "Badan sel", "Neurit"], n: "Saraf 'ngobrol' lewat celah Sinaps." },
+        { q: "Pernyataan potensial aksi?", a: 4, opts: ["Refrakter", "Na keluar", "Amplitudo", "Mielin", "Ambang rangsang"], n: "Baru nyala kalau rangsangan lewat ambang batas." },
+        { q: "ROS reaksi Haber-Weiss?", a: 4, opts: ["Peroxyl", "Singlet", "H2O2", "Superoksida", "Hidroksil"], n: "Hasilnya Radikal Hidroksil yang berbahaya." },
+        { q: "Otot napas rileks?", a: 4, opts: ["Atmosfer", "Membesar", "Negatif", "Masuk", "Tekanan intra-alveolas naik"], n: "Pas rileks, tekanan paru naik dan udara keluar." },
+        { q: "Hormon steroid?", a: 0, opts: ["Estrogen", "Tiroksin", "Adrenalin", "Epinefrin", "Growth"], n: "Estrogen berasal dari lemak (kolesterol)." },
+        { q: "Tugas antioksidan?", a: 4, opts: ["Merusak", "Elektron", "Inisiasi", "Baru", "Stop reaksi radikal"], n: "Dia bertugas menghentikan serangan radikal bebas." },
+        { q: "Gudang kalsium otot?", a: 2, opts: ["Plate", "T-tubule", "Retikulum sarkoplasma", "Sarkolema", "Akson"], n: "Kalsium disimpen di Retikulum Sarkoplasma." },
+        { q: "Katup AV?", a: 3, opts: ["Miokardium", "Atrium", "Otot", "Mencegah balik ke atrium", "Vena"], n: "Biar darah nggak muncrat balik ke atrium." },
+        { q: "Pembentuk superoksida fagosom?", a: 3, opts: ["iNOS", "Fenton", "NO", "NADPH oksidase", "MPO"], n: "NADPH Oksidase itu pemicu awal senjatanya." },
+        { q: "EKG bipolar?", a: 0, opts: ["Beda 2 ekstremitas", "V", "Horizontal", "3D", "aVR"], n: "Ngukur beda listrik antara dua tangan/kaki." },
+        { q: "Antioksidan butuh Mn?", a: 0, opts: ["SOD", "Catalase", "GPx", "Glutathione", "Vitamin E"], n: "SOD butuh Mangan biar bisa kerja." },
+        { q: "Sistem endokrin?", a: 2, opts: ["Asetilkolin", "Dopamin", "Insulin", "Interleukin", "Tromboksan"], n: "Insulin jalan-jalan lewat darah." },
+        { q: "Pressure reservoir?", a: 3, opts: ["Venula", "Kapiler", "Vena", "Arteri", "Arteriola"], n: "Arteri besar nahan tekanan kuat jantung." },
+        { q: "Hormon hambat lambung?", a: 4, opts: ["GLIP", "Gastrin", "Sekretin", "Motilin", "CCK"], n: "CCK suruh lambung pelan-pelan pas ada lemak." },
+        { q: "Saluran kemih terakhir?", a: 3, opts: ["Glomerulus", "Ureter", "Kandung kemih", "Urethra", "Duktus"], n: "Uretra itu pintu keluar terakhir." },
+        { q: "Siklus haid berubah?", a: 1, opts: ["Ovulasi", "Folikuler", "Proliferasi", "Regenerasi", "Luteal"], n: "Fase Folikuler durasinya beda-beda tiap orang." },
+        { q: "Keseimbangan air?", a: 1, opts: ["Angiotensin", "Vasopressin", "II", "Renin", "Aldosteron"], n: "Vasopressin suruh ginjal tarik air lagi." },
+        { q: "Umpan balik positif lahir?", a: 2, opts: ["Oksitosin", "Buka", "Peregangan serviks", "Rahim", "Serviks"], n: "Kepala bayi nekan serviks bikin oksitosin naik." },
+        { q: "Picu LH?", a: 2, opts: ["GHRH", "TRH", "GnRH", "CRH", "Somatostatin"], n: "GnRH yang suruh LH keluar." },
+        { q: "Saraf esofagus?", a: 0, opts: ["V, VII, X, XII", "VI", "XI", "Opticus", "Olfaktorius"], n: "Melibatkan banyak saraf kranialis." },
+        { q: "Sel batang mata?", a: 4, opts: ["Warna", "Terang", "Fovea", "Bintik", "Cahaya rendah"], n: "Dipakai pas kondisi gelap atau malam." },
+        { q: "Frank-Starling Law?", a: 2, opts: ["Hormon", "Simpatis", "Volume akhir diastolik naik", "Sama", "Curah"], n: "Makin banyak darah masuk, jantung mompa makin kuat." },
+        { q: "Neurotransmitter?", a: 1, opts: ["Tiroksin", "Asetilkolin", "Glukagon", "Insulin", "Interleukin"], n: "Kurir kimia antar sel saraf paling umum." },
+        { q: "Habis gelombang T?", a: 1, opts: ["Rileks", "Atrium & ventrikel relaksasi", "Gak ada", "Atrium", "Kontraksi"], n: "Ventrikel istirahat dan jantung jadi rileks." },
+        { q: "Istirahat sel saraf?", a: 4, opts: ["Ca", "Cl", "P", "Na", "Kalium"], n: "Paling condong ke ion Kalium." },
+        { q: "Rabun dekat?", a: 4, opts: ["Panjang", "Silinder", "Katarak", "Tua", "Bola mata pendek"], n: "Bayangan jatuh di belakang retina." },
+        { q: "Asam lambung HCl?", a: 1, opts: ["Chief", "Parietal", "Saraf", "G", "Mukus"], n: "Sel Parietal itu pabrik asamnya." },
+        { q: "Indera pengecap?", a: 1, opts: ["Rambut", "Taste bud", "Hidung", "Saraf", "Batang"], n: "Reseptor pengecap di lidah." },
+        { q: "Picu hipotalamus?", a: 2, opts: ["Hipofisis", "Organ", "Lingkungan saraf", "Kelenjar", "Hipofisis naik"], n: "Sistem saraf lapor ke hipotalamus." },
+        { q: "Tahanan aliran darah?", a: 3, opts: ["Kekentalan", "Detak", "Panjang", "Diameter pembuluh", "Isi"], n: "Diameter pembuluh faktor paling besar." },
+        { q: "Pacemaker utama?", a: 2, opts: ["Purkinje", "Atrium", "Simpul SA", "His", "AV"], n: "SA Node itu bos detak jantung." },
+        { q: "Gula serap usus?", a: 0, opts: ["Galaktosa", "Sukrosa", "Glikogen", "Laktosa", "Maltosa"], n: "Cuma monosakarida yang bisa lewat." },
+        { q: "Kapasitas Vital?", a: 0, opts: ["Kapasitas vital", "Alun", "Residu", "Total", "Maksimal"], n: "Hasil tarik pol dan buang pol." },
+        { q: "Sistolik korotkoff?", a: 0, opts: ["I", "II", "III", "IV", "V"], n: "Bunyi pertama yang terdengar." },
+        { q: "Kation cairan luar?", a: 2, opts: ["K", "Ca", "Natrium", "Mg", "Cl"], n: "Natrium kation utama di luar sel." },
+        { q: "Telinga dalam?", a: 0, opts: ["Cochlea", "Timpani", "Tulang", "Eustachius", "Meatus"], n: "Koklea itu rumah siput di telinga dalam." }
+    ];
+
+    let skrg = 0;
+    let poin = 0;
+    let jawabanKu = Array(daftarSoal.length).fill(null);
+
+    function muat() {
+        const s = daftarSoal[skrg];
+        document.getElementById('q-title').innerText = `SOAL ${skrg + 1} / ${daftarSoal.length}`;
+        document.getElementById('q-text').innerText = s.q;
+        
+        const box = document.getElementById('opts-box');
+        box.innerHTML = '';
+        const abcd = ['A','B','C','D','E'];
+        
+        const sudah = jawabanKu[skrg] !== null;
+
+        s.opts.forEach((teks, i) => {
+            const b = document.createElement('button');
+            b.className = 'opt';
+            b.innerHTML = `<b>${abcd[i]}.</b> ${teks}`;
+            if (sudah) {
+                if (i === s.a) b.classList.add('correct');
+                else if (i === jawabanKu[skrg]) b.classList.add('wrong');
+                b.disabled = true;
+            }
+            b.onclick = () => pencet(i);
+            box.appendChild(b);
+        });
+
+        const nb = document.getElementById('note-box');
+        if (sudah) { nb.style.display = 'block'; nb.innerText = `💡 Penjelasan: ${s.n}`; }
+        else { nb.style.display = 'none'; }
+        navigasi();
+    }
+
+    function pencet(i) {
+        jawabanKu[skrg] = i;
+        if (i === daftarSoal[skrg].a) { poin++; document.getElementById('skor-val').innerText = poin; }
+        muat();
+    }
+
+    function navigasi() {
+        const grid = document.getElementById('nav-grid');
+        grid.innerHTML = '';
+        daftarSoal.forEach((s, i) => {
+            const d = document.createElement('div');
+            d.className = 'nav-item';
+            d.innerText = i + 1;
+            if (i === skrg) d.classList.add('n-active');
+            if (jawabanKu[i] !== null) {
+                d.classList.add(jawabanKu[i] === s.a ? 'n-correct' : 'n-wrong');
+            }
+            d.onclick = () => { skrg = i; muat(); };
+            grid.appendChild(d);
+        });
+    }
+
+    function nav(v) { if (skrg + v >= 0 && skrg + v < daftarSoal.length) { skrg += v; muat(); } }
+
+    function selesai() {
+        document.getElementById('quiz-page').style.display = 'none';
+        document.getElementById('review-page').style.display = 'block';
+        document.getElementById('final-skor').innerText = poin;
+        document.getElementById('final-pesan').innerText = poin > 45 ? "Mantap! Kamu master IBD!" : "Yuk belajar lagi, dikit lagi bisa!";
+        
+        const list = document.getElementById('review-list');
+        list.innerHTML = '<h3 style="margin-top:20px">Daftar Salah:</h3>';
+        daftarSoal.forEach((s, i) => {
+            if (jawabanKu[i] !== s.a) {
+                const c = document.createElement('div');
+                c.className = 'question-card';
+                c.style.marginBottom = '15px';
+                c.innerHTML = `
+                    <div class="q-header">SOAL NO ${i+1}</div>
+                    <div class="q-body">
+                        <p>${s.q}</p>
+                        <p style="color:var(--danger)">Pilihanmu: ${jawabanKu[i] !== null ? s.opts[jawabanKu[i]] : 'Kosong'}</p>
+                        <p style="color:var(--success)">Kunci: ${s.opts[s.a]}</p>
+                        <p style="background:#fff9c4; padding:10px; border-radius:5px"><b>Info:</b> ${s.n}</p>
+                    </div>
+                `;
+                list.appendChild(c);
+            }
+        });
+    }
+
+    muat();
+</script>
+</body>
+</html>
